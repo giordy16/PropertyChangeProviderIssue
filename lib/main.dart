@@ -43,9 +43,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late List<Counter> counterList;
 
+  bool useObjectBox = true;
+
   @override
   void initState() {
-    fetchCounters();
+    if (useObjectBox) {
+      fetchCounters();
+    } else {
+      counterList = [];
+    }
+
     super.initState();
   }
 
@@ -61,16 +68,27 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void saveCounter(Counter c) {
-    objectbox.store.box<CounterObox>().put(c.convertToObox());
+    if (useObjectBox) {
+      objectbox.store.box<CounterObox>().put(c.convertToObox());
+    } else {
+      counterList.add(c);
+    }
   }
 
   void increase(Counter c) {
     c.currentValue = (c.currentValue ?? 0) + 1;
-    saveCounter(c);
+
+    if (useObjectBox) {
+      saveCounter(c);
+    }
   }
 
   void delete(Counter c) {
-    objectbox.store.box<CounterObox>().remove(c.id);
+    if (useObjectBox) {
+      objectbox.store.box<CounterObox>().remove(c.id);
+    } else {
+      counterList.remove(c);
+    }
   }
 
   @override
@@ -82,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
               saveCounter(Counter(
                   name: DateTime.now().millisecondsSinceEpoch.toString()));
               setState(() {
-                fetchCounters();
+                if (useObjectBox) fetchCounters();
               });
             }),
         body: SafeArea(
@@ -98,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         delete(c);
                         setState(() {
-                          fetchCounters();
+                          if (useObjectBox) fetchCounters();
                         });
                       },
                       icon: const Icon(Icons.delete_outline)),
